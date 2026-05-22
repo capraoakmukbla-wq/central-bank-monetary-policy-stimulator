@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central Bank Dashboard</title>
+    <!-- Tailwind CSS makes our dashboard look like a premium app -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Chart.js draws the awesome live line graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 p-6 min-h-screen">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <header class="border-b border-slate-700 pb-4 mb-6 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-black text-amber-400">🚨 CENTRAL BANK SIMULATOR</h1>
+                <p class="text-xs text-slate-400">Keep Inflation near 2.0% to win!</p>
+            </div>
+            <div class="text-right">
+                <span class="text-xs uppercase text-slate-400 block">Stability Score</span>
+                <span class="text-2xl font-bold text-emerald-400">{{ state.score }}/100</span>
+            </div>
+        </header>
+
+        <!-- Current Status Readout -->
+        <div class="grid grid-cols-3 gap-4 mb-6">
+            <div class="bg-slate-800 p-4 rounded-lg text-center border border-slate-700">
+                <span class="text-xs text-slate-400 block">QUARTER</span>
+                <span class="text-xl font-bold text-indigo-400">{{ state.quarter }}</span>
+            </div>
+            <div class="bg-slate-800 p-4 rounded-lg text-center border border-slate-700">
+                <span class="text-xs text-slate-400 block">INFLATION</span>
+                <span class="text-xl font-bold text-rose-400">{{ state.inflation }}%</span>
+            </div>
+            <div class="bg-slate-800 p-4 rounded-lg text-center border border-slate-700">
+                <span class="text-xs text-slate-400 block">OUTPUT GAP</span>
+                <span class="text-xl font-bold text-amber-400">{{ state.output_gap }}%</span>
+            </div>
+        </div>
+
+        <!-- Notification Box -->
+        <div class="bg-slate-800 p-3 rounded-lg border border-slate-700 mb-6 text-center text-sm text-amber-300">
+            📢 <b>Market Update:</b> {{ message }}
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Controls Form -->
+            <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 flex flex-col justify-between">
+                {% if not game_over %}
+                <form action="/next_quarter" method="POST" class="space-y-4">
+                    <label class="block text-sm font-medium text-slate-300">Set Interest Rate:</label>
+                    <input type="range" name="interest_rate" min="0" max="12" step="0.5" value="{{ state.interest_rate }}"
+                           class="w-full accent-amber-400 cursor-pointer"
+                           oninput="this.nextElementSibling.value = this.value + '%'">
+                    <output class="block text-center text-xl font-bold text-amber-400">{{ state.interest_rate }}%</output>
+                    
+                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2 rounded transition-all">
+                        Next Quarter ➔
+                    </button>
+                </form>
+                {% else %}
+                <div class="text-center text-rose-400 font-bold p-4">GAME OVER</div>
+                {% endif %}
+                
+                <a href="/reset" class="block text-center text-xs text-slate-400 border border-slate-600 rounded py-1 mt-4 hover:bg-slate-700">
+                    🔄 Restart Game
+                </a>
+            </div>
+
+            <!-- Chart Display -->
+            <div class="md:col-span-2 bg-slate-800 p-4 rounded-lg border border-slate-700 h-[260px]">
+                <canvas id="historyChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js Wiring Script -->
+    <script>
+        const ctx = document.getElementById('historyChart').getContext('2d');
+        const data = {{ chart_data | tojson }};
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.quarters.map(q => 'Q' + q),
+                datasets: [
+                    { label: 'Inflation', data: data.inflation, borderColor: '#f43f5e', tension: 0.1 },
+                    { label: 'Interest Rate', data: data.rates, borderColor: '#fbbf24', tension: 0.1 },
+                    { label: 'Output Gap', data: data.gap, borderColor: '#6366f1', tension: 0.1 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    </script>
+</body>
+</html>
