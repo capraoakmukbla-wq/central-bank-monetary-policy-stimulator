@@ -27,7 +27,7 @@ A full-stack, interactive web-based simulator designed to mimic the monetary pol
 
 Below is the live dashboard interface demonstrating the control panel, decision logs, and interactive macroeconomic trend charts:
 
-![Central Bank Simulator Dashboard](1000091403.png)
+![Central Bank Simulator Dashboard](1000091403_2.png)
 
 ---
 
